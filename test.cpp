@@ -5,6 +5,8 @@
 #include <vector>  
 #include <chrono>
 #include <random> 
+#include <math.h>
+#include <cmath>
 #include "test.h"
 
 using namespace std;
@@ -76,28 +78,55 @@ void Hashtable::print_params(void) {
 	}
 }
 
-string Hashtable::hash(Point vec, float * (*get_value)(const int&,const float&)) { // applying hash function
+string Hashtable::hash(Point& p) { // applying hash function
+	std::forward_list<float *>::iterator it_v = v.begin();
+	std::forward_list<float>::iterator it_t = t.begin();
+	
+	string res = "";
 	for (int i = 0; i < k; ++i) // for every h_i()
 	{
-		//float * mult = vec.get_value(i,)
+	cout << "iter: " << i << endl;
+		// calculating h()
+		float fr = 0.0;
+		for (int i = 0; i < Point::d; ++i)
+		{
+			fr += p.get_coord(i,(*it_v)[i]);
+		}
+		
+		// adding two fractions
+		fr /= (float)w;
+	cout << fr << "+";
+
+		fr += (*it_t / (float)w);
+	cout << (*it_t / (float)w);
+
+		// convert floor to string
+		int res_i;
+		if( i==0 ) {
+			res_i = (int)floor (fr);
+		} else {
+			res_i = abs ((int)floor (fr));
+		}
+		res += to_string(res_i);
+	cout << "=" << res_i << endl;
+
+		// proceed with next h()
+		it_v++;
+		it_t++;
+
 	}
+cout << res << endl;
+	return res;
 }
 
 Point::Point(void) {}
 Point::~Point(void) {}
 
 Point_int::Point_int(int * array) : coords(array) {}
-Point_int::~Point_int(void) { delete coords; }
+Point_int::~Point_int(void) { /*delete coords;*/ }
 
-float * Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
-	if( i<Point::k ){
-		int * t_coords = (int *)coords;
-		float * res = new float((float)v_i*t_coords[i]);
-		cout << *res << " " << v_i << " " << t_coords[i] << endl;
-		return res;
-	} else {
-		return NULL;
-	}
+float Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
+	return (float)v_i*coords[i];	
 }
 
 HashList::HashList(int nL) : L(nL) {}

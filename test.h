@@ -9,11 +9,11 @@ using namespace std;
 
 class Point{
 public:
-	static int k;
+	static int d;
 
 	Point();
 	~Point();
-	virtual float * get_coord(const int& i,const float& v_i) { return NULL; }
+	virtual float get_coord(const int& i,const float& v_i) {}
 };
 
 class Point_int : public Point{
@@ -22,7 +22,7 @@ private:
 public:
 	Point_int(int *);
 	~Point_int();
-	float * get_coord(const int& i,const float& v_i);	
+	float get_coord(const int& i,const float& v_i);	
 };
 
 class Hashtable{
@@ -38,7 +38,8 @@ public:
 	Hashtable();
 	~Hashtable();	
 	void print_params();
-	string hash(Point, float * (*get_value)(const int&,const float&)); // 1:pos,2:v_coordinate
+	float * get_v(int);
+	string hash(Point&); // 1:pos,2:v_coordinate
 };
 
 class HashList{
