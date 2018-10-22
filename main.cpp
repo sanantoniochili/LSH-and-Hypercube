@@ -41,12 +41,12 @@ int main(int argc, char const *argv[])
 	for (int i = 1; i < Hashtable::d; ++i)
 	{
 		array[i] = array[i-1]+1.01;
+		cout << array[i] << endl;
 	}
 	
-	Vector vec(array);
-	float f = 0.0;
-	vec.get_coord_int(0,0.1,f);
-	cout << f << endl;
+	//Point_int vec(array);
+	//float * f = vec.get_coord_int(0,0.1);
+	//cout << *f << endl;
 
 	return 0;
 }
@@ -54,3 +54,4 @@ int main(int argc, char const *argv[])
 int Hashtable::w = 4;
 int Hashtable::k = 5;
 int Hashtable::d = 10;
+int Point::k = 5;

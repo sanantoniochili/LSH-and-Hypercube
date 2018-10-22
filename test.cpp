@@ -76,20 +76,27 @@ void Hashtable::print_params(void) {
 	}
 }
 
-string Hashtable::hash(Vector vec, void (*get_value)(int,float,float&)) {
+string Hashtable::hash(Point vec, float * (*get_value)(const int&,const float&)) { // applying hash function
 	for (int i = 0; i < k; ++i) // for every h_i()
 	{
-		
+		//float * mult = vec.get_value(i,)
 	}
 }
 
-Vector::Vector(void * array) : coords(array) {}
-Vector::~Vector(void) {}
-void Vector::get_coord_int(int i, float v_i, float& res) { // res is result of mult := (coordinate i of Vector)*v_i 
-	if( i<Hashtable::k ){
+Point::Point(void) {}
+Point::~Point(void) {}
+
+Point_int::Point_int(int * array) : coords(array) {}
+Point_int::~Point_int(void) { delete coords; }
+
+float * Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
+	if( i<Point::k ){
 		int * t_coords = (int *)coords;
-		res = (float)v_i*t_coords[i];
-		cout << res << " " << v_i << " " << t_coords[i] << endl;
+		float * res = new float((float)v_i*t_coords[i]);
+		cout << *res << " " << v_i << " " << t_coords[i] << endl;
+		return res;
+	} else {
+		return NULL;
 	}
 }
 
