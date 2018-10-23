@@ -7,9 +7,15 @@
 #include <random> 
 #include <math.h>
 #include <cmath>
+#include <climits>
 #include "test.h"
 
 using namespace std;
+unsigned long M = pow(2,32)-5;
+
+bool addOvf(long long,long long);
+bool multOvf(long,long);
+long long mod(long long,unsigned long);
 
 Hashtable::Hashtable() {
 
@@ -78,44 +84,50 @@ void Hashtable::print_params(void) {
 	}
 }
 
-string Hashtable::hash(Point& p) { // applying hash function
+long long Hashtable::hash(Point& p) { // applying hash function 
 	std::forward_list<float *>::iterator it_v = v.begin();
 	std::forward_list<float>::iterator it_t = t.begin();
+	std::forward_list<int>::iterator it_r = r.begin();
 	
-	string res = "";
+	long long res = 0;
+
 	for (int i = 0; i < k; ++i) // for every h_i()
 	{
-	cout << "iter: " << i << endl;
 		// calculating h()
-		float fr = 0.0;
+		float temp = 0.0;
 		for (int i = 0; i < Point::d; ++i)
 		{
-			fr += p.get_coord(i,(*it_v)[i]);
+			temp += p.get_coord(i,(*it_v)[i]);
 		}
 		
 		// adding two fractions
-		fr /= (float)w;
-	cout << fr << "+";
+		temp /= (float)w;
 
-		fr += (*it_t / (float)w);
-	cout << (*it_t / (float)w);
-
-		// convert floor to string
-		int res_i;
-		if( i==0 ) {
-			res_i = (int)floor (fr);
-		} else {
-			res_i = abs ((int)floor (fr));
+		temp += (*it_t / (float)w);
+		long h = floor (temp);
+		
+		// multiply with r and apply mod M
+		if( multOvf(*it_r,h) ) { // check for overflow
+			cout << "Overflow detected" << endl;
+			exit (-1);
 		}
-		res += to_string(res_i);
-	cout << "=" << res_i << endl;
+		long res_i = mod(((*it_r)*h),M);
+
+		// add to result 
+		if( addOvf(res_i,res) ) { // check for overflow
+			cout << "Overflow detected" << endl;
+			exit (-1);
+		}
+		res += res_i;
 
 		// proceed with next h()
 		it_v++;
 		it_t++;
+		it_r++;
 
 	}
-cout << res << endl;
+
+	res = mod(res,M);
 	return res;
 }
 
@@ -129,4 +141,38 @@ float Point_int::get_coord(const int& i, const float& v_i) { // res is result of
 	return (float)v_i*coords[i];	
 }
 
-HashList::HashList(int nL) : L(nL) {}
+Hashlist::Hashlist(int nL) : L(nL) {}
+Hashlist::~Hashlist() {}
+
+
+
+
+
+/* Fuction to check overflow on addition.
+   credits: https://www.geeksforgeeks.org */
+bool addOvf(long long a, long long b) 
+{ 
+   if( a > LLONG_MAX - b) 
+     return true; 
+   else
+      return false; 
+} 
+
+/* Fuction to check overflow on multiplication.
+   credits: https://www.geeksforgeeks.org */
+bool multOvf(long a, long b) 
+{ 
+	// Check if either of them is zero 
+	if (a == 0 || b == 0) 
+		return false; 
+	
+	long result = a * b; 
+	if (a == result / b) 
+		return false; 
+	else
+		return true; 
+} 
+
+long long mod(long long a, unsigned long b) {
+	return (abs(a) % b + b) % b; // absolute value to restrict size of
+}

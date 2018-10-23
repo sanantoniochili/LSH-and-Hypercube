@@ -32,9 +32,9 @@ int main(int argc, char const *argv[])
     }
     infile.close();
 
-
+    Hashlist HL(2);
 	Hashtable * Htable = new Hashtable();
-	Htable->print_params();
+	//Htable->print_params();
 
 	int * array = new int[Point::d];
 	array[0] = 1;
@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
 		array[i] = array[i-1]+10;	}
 	
 	Point_int p(array);
-	Htable->hash(p);
+	cout << Htable->hash(p) << endl;
 
 	return 0;
 }

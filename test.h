@@ -7,6 +7,7 @@
 #include <random>
 using namespace std; 
 
+
 class Point{
 public:
 	static int d;
@@ -30,7 +31,7 @@ private:
 	forward_list<float> t;
 	forward_list<int> r;
 	forward_list<float *> v;
-	unordered_multimap<string, Point> table;
+	unordered_multimap<long long, Point> table;
 
 public:
 	static int w,k,d;
@@ -39,16 +40,16 @@ public:
 	~Hashtable();	
 	void print_params();
 	float * get_v(int);
-	string hash(Point&); // 1:pos,2:v_coordinate
+	long long hash(Point&); // 1:pos,2:v_coordinate
 };
 
-class HashList{
+class Hashlist{
 private:
 	forward_list<Hashtable> HL;
 
 public:
 	int L;
 
-	HashList(int);
-	~HashList();	
+	Hashlist(int);
+	~Hashlist();	
 };
