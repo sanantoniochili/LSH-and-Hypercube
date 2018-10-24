@@ -8,6 +8,8 @@
 #include <math.h>
 #include <cmath>
 #include <climits>
+#include <utility>
+#include <functional>
 #include "test.h"
 
 using namespace std;
@@ -54,6 +56,10 @@ Hashtable::~Hashtable() {
 		{
 			delete(*it_v);
 		}
+		for ( auto it = table.begin(); it != table.end(); ++it )
+		{
+			//delete(&it);
+		}
 	}
 
 void Hashtable::print_params(void) {
@@ -99,12 +105,12 @@ long long Hashtable::hash(Point& p) { // applying hash function
 		{
 			temp += p.get_coord(i,(*it_v)[i]);
 		}
-		
+
 		// adding two fractions
 		temp /= (float)w;
-
 		temp += (*it_t / (float)w);
 		long h = floor (temp);
+		p.add_h2g(h);
 		
 		// multiply with r and apply mod M
 		if( multOvf(*it_r,h) ) { // check for overflow
@@ -131,14 +137,45 @@ long long Hashtable::hash(Point& p) { // applying hash function
 	return res;
 }
 
-Point::Point(void) {}
+void Hashtable::fill(std::vector<Point *>& points) {
+	for (int i = 0; i < points.size(); ++i)
+	{
+		hash(*(points[i]));
+		table.insert(make_pair(hash(*(points[i])),points[i]));
+	}
+}
+
+void Hashtable::print_table(void) {
+	for ( unsigned i = 0; i < table.bucket_count(); ++i) {
+		for ( auto local_it = table.begin(i); local_it!= table.end(i); ++local_it ) {
+		    std::cout << " " << local_it->first << ":";
+		    local_it->second->print_coords();
+		}
+	}
+}
+
+Point::Point(void) { this->g = ""; }
 Point::~Point(void) {}
+
+void Point::add_h2g(long  h) {
+	this->g += to_string(h);
+}
+void Point::get_g(void) {
+	cout << "Concatenation of h's for point: " << this->g << endl;
+}
 
 Point_int::Point_int(int * array) : coords(array) {}
 Point_int::~Point_int(void) { /*delete coords;*/ }
 
 float Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
 	return (float)v_i*coords[i];	
+}
+void Point_int::print_coords(void) {
+	for (int i = 0; i < d; ++i)
+	{
+		cout << '\t' << this->coords[i];
+	}
+	cout << endl;
 }
 
 Hashlist::Hashlist(int nL) : L(nL) {}

@@ -32,18 +32,27 @@ int main(int argc, char const *argv[])
     }
     infile.close();
 
-    Hashlist HL(2);
-	Hashtable * Htable = new Hashtable();
-	//Htable->print_params();
-
 	int * array = new int[Point::d];
 	array[0] = 1;
 	for (int i = 1; i < Hashtable::d; ++i)
 	{
 		array[i] = array[i-1]+10;	}
 	
-	Point_int p(array);
-	cout << Htable->hash(p) << endl;
+	Point_int p1(array);
+	Point_int p2(array);
+	Point_int p3(array);
+	Point_int p4(array);
+	Point_int p5(array);
+	vector<Point *> vec;
+	vec.push_back(&p1);
+	vec.push_back(&p2);
+	vec.push_back(&p3);
+	vec.push_back(&p4);
+	vec.push_back(&p5);
+	Hashtable * Htable = new Hashtable();
+	Htable->fill(vec);
+	Htable->print_table();
+ 
 
 	return 0;
 }
