@@ -145,15 +145,19 @@ void Hashtable::fill(std::vector<Point *>& points) {
 void Hashtable::print_table(void) {
 	for ( unsigned i = 0; i < table.bucket_count(); ++i) {
 		for ( auto local_it = table.begin(i); local_it!= table.end(i); ++local_it ) {
-		    std::cout << " " << local_it->first << ":";
+		    std::cout << " " << local_it->second->get_name() << ": (" << local_it->first << ")";
 		    local_it->second->print_coords();
 		}
 	}
 }
 
+int Hashtable::get_bucketn() {
+	return this->table.bucket_count();
+}
+
 
 /****POINT****/
-Point::Point(void) { this->g = ""; }
+Point::Point(string nname) : name(nname) { this->g = ""; }
 Point::~Point(void) {}
 
 void Point::add_h2g(long  h) {
@@ -162,8 +166,9 @@ void Point::add_h2g(long  h) {
 void Point::get_g(void) {
 	cout << "Concatenation of h's for point: " << this->g << endl;
 }
+string Point::get_name() { return this->name; }
 
-Point_int::Point_int(int * array) : coords(array) {}
+Point_int::Point_int(int * array, string nname) : Point(nname),coords(array) {}
 Point_int::~Point_int(void) { delete[] coords; }
 
 float Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 

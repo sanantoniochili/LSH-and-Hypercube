@@ -8,7 +8,7 @@ int main(int argc, char const *argv[])
 	cout << "Enter path of dataset:" << endl;
 	cin >> filename;
 */
-  	string filename = "../siftsmall/input_small";
+  	string filename = "../siftsmall/final_small";
   	ifstream infile (filename);
   	if ( !(infile.is_open()) ) {
   		cout << "Unable to open file." << endl;
@@ -28,13 +28,19 @@ int main(int argc, char const *argv[])
     	int * array = new int[Point::d];
 
     	int count = 0;
-		while (((pos = line.find(delimiter)) != std::string::npos) && count < Point::d) {
+    	string name;
+		while (((pos = line.find(delimiter)) != std::string::npos) && count <= Point::d) {
 		    number = line.substr(0, pos);
-		    array[count++] = stoi(number);
+		    if( count==0 ){
+		    	name = number;
+		    } else{
+		    	array[count-1] = stoi(number);
+		    }
+		    count++;
 		    line.erase(0, pos + delimiter.length());
 		}
 
-		Point_int * p = new Point_int(array); // creating point
+		Point_int * p = new Point_int(array,name); // creating point
 		vec.push_back(p); // adding to vector of points
 
     }
@@ -45,37 +51,17 @@ int main(int argc, char const *argv[])
     {
     	(*iter)->fill(vec);
     	//(*iter)->print_table();
+    	//cout << (*iter)->get_bucketn() << endl;
     }
-   
-	/*Hashlist Hl(2,2.0); // create list of hashtables and fill with points
-	int count = 13;
-	for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter ) // for each hashtable
-	{
-		vector<Point *> vec;
-	    for (int j = 0; j < 100; ++j)
-	    {
-	    	int * array = new int[Point::d];
-			array[0] = 1;
-			for (int i = 1; i < Hashtable::d; ++i)
-			{
-				array[i] = array[i-1]+j;	}
-			
-			Point_int * p1 = new Point_int(array); // creating point
-			vec.push_back(p1); // adding to vector of points
-	    }
-	    (*iter)->fill(vec);
-	}
-
-	for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter )
-	{
-	    (*iter)->print_table();
-	}
-
+    for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter ) // for each hashtable
+    {
+    	(*iter)->print_table();
+    }
  
- 	/*for (int i = 0; i < vec.size(); ++i)
+ 	for (int i = 0; i < vec.size(); ++i)
  	{
  		delete vec[i];
- 	}*/
+ 	}
 	return 0;
 }
 
