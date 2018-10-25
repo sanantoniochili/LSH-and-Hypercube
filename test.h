@@ -42,7 +42,7 @@ private:
 public:
 	static int w,k,d;
 	
-	Hashtable();
+	Hashtable(float loadfactor);
 	~Hashtable();	
 	void print_params();
 	float * get_v(int);
@@ -53,9 +53,9 @@ public:
 
 class Hashlist{
 public:
-	forward_list<Hashtable> HL;
+	forward_list<Hashtable *> list;
 	int L;
 
-	Hashlist(int);
-	~Hashlist();	
+	Hashlist(int,float);
+	~Hashlist();
 };

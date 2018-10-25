@@ -19,7 +19,8 @@ bool addOvf(long long,long long);
 bool multOvf(long,long);
 long long mod(long long,unsigned long);
 
-Hashtable::Hashtable() {
+/****HASHTABLE****/
+Hashtable::Hashtable(float loadfactor) {
 
 		unsigned seed = chrono::system_clock::now().time_since_epoch().count();
 		std::forward_list<float>::iterator it_t = t.before_begin();
@@ -48,17 +49,14 @@ Hashtable::Hashtable() {
 			}
 			it_v = v.insert_after(it_v, coords);
 		}
-	}
-Hashtable::~Hashtable() {
 
-		std::forward_list<float *>::iterator it_v = v.before_begin();
-		for (int i = 0; i < k; ++i)
+		this->table.max_load_factor ( loadfactor );
+	}
+
+Hashtable::~Hashtable() {
+		for ( auto it_v = v.begin(); it_v != v.end(); ++it_v )
 		{
-			delete(*it_v);
-		}
-		for ( auto it = table.begin(); it != table.end(); ++it )
-		{
-			//delete(&it);
+			delete[] (*it_v);
 		}
 	}
 
@@ -140,7 +138,6 @@ long long Hashtable::hash(Point& p) { // applying hash function
 void Hashtable::fill(std::vector<Point *>& points) {
 	for (int i = 0; i < points.size(); ++i)
 	{
-		hash(*(points[i]));
 		table.insert(make_pair(hash(*(points[i])),points[i]));
 	}
 }
@@ -154,6 +151,8 @@ void Hashtable::print_table(void) {
 	}
 }
 
+
+/****POINT****/
 Point::Point(void) { this->g = ""; }
 Point::~Point(void) {}
 
@@ -165,11 +164,12 @@ void Point::get_g(void) {
 }
 
 Point_int::Point_int(int * array) : coords(array) {}
-Point_int::~Point_int(void) { /*delete coords;*/ }
+Point_int::~Point_int(void) { delete[] coords; }
 
 float Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
 	return (float)v_i*coords[i];	
 }
+
 void Point_int::print_coords(void) {
 	for (int i = 0; i < d; ++i)
 	{
@@ -178,8 +178,22 @@ void Point_int::print_coords(void) {
 	cout << endl;
 }
 
-Hashlist::Hashlist(int nL) : L(nL) {}
-Hashlist::~Hashlist() {}
+
+/****HASHLIST****/
+Hashlist::Hashlist(int nL, float loadfactor) : L(nL) {
+	std::forward_list<Hashtable *>::iterator iter = list.before_begin();
+	for (int i = 0; i < L; ++i)
+	{
+		Hashtable * Ht = new Hashtable(loadfactor);
+		iter = list.insert_after(iter, Ht);
+	}
+}
+Hashlist::~Hashlist() {
+	for ( auto iter = list.begin(); iter != list.end(); ++iter )
+	{
+		delete *iter;
+	}
+}
 
 
 
