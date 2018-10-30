@@ -30,14 +30,22 @@ Hashlist::~Hashlist() {
 	}
 }
 
-Point * Hashlist::NN(Point * query,double (*metric)(Point *,Point *)) {
-	Point * nn = NULL;
-
-	std::forward_list<Hashtable *>::iterator iter = list.before_begin();
-	for (int i = 0; i < L; ++i)
+DPnt Hashlist::NN(Point * query,double (*metric)(Point *,Point *)) {
+	DPnt min(NULL,-1);
+	int count = 1;
+	for ( auto iter = list.begin(); iter != list.end(); ++iter ) // for each hashtable
 	{
-		//(*iter)->NN(query,metric);
+		cout << "--Hashtable " << count++ << "--" << endl; 
+		min = (*iter)->NN(query,metric,min);
 	}
 
-	return nn;
+	if( min.first ){
+		cout << query->get_name();
+		query->print_coords();
+		cout << "Final NN: " << min.first->get_name();
+		min.first->print_coords();
+	} else{
+		cout << "**Found no neighbours.\n" << endl;
+	}
+	return min;
 }

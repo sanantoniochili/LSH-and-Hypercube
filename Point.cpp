@@ -28,7 +28,7 @@ string Point::get_name() { return this->name; }
 Point_int::Point_int(int * array, string nname) : Point(nname),coords(array) {}
 Point_int::~Point_int(void) { delete[] coords; }
 
-float Point_int::get_coord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
+float Point_int::get_multcoord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
 	return (float)v_i*coords[i];	
 }
 
@@ -38,4 +38,17 @@ void Point_int::print_coords(void) {
 		cout << '\t' << this->coords[i];
 	}
 	cout << endl;
+}
+
+void* Point_int::get_coords() {
+	return coords;
+}
+
+double Point_int::abs() {
+	double sum = 0;
+	for (int i = 0; i < d; ++i)
+	{
+		sum += coords[i]*coords[i];
+	}
+	return sqrt(sum);
 }

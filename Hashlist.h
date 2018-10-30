@@ -8,6 +8,7 @@
 #include <vector>  
 #include <chrono>
 #include <random>
+#include "Hashtable.h"
 using namespace std; 
 
 class Hashlist{
@@ -17,7 +18,7 @@ public:
 
 	Hashlist(int,float);
 	~Hashlist();
-	Point * NN(Point *,double(*metric)(Point *,Point *));
+	DPnt NN(Point *,double(*metric)(Point *,Point *));
 };
 
 #endif

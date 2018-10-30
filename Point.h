@@ -11,6 +11,7 @@
 using namespace std; 
 
 
+
 class Point{
 private:
 	string name;
@@ -20,21 +21,26 @@ public:
 
 	Point(string);
 	~Point();
-	virtual float get_coord(const int& i,const float& v_i) {}
+	virtual float get_multcoord(const int& i,const float& v_i) {}
 	virtual void print_coords() {}
+	virtual void* get_coords() {}
+	virtual double abs() {}
+
 	void add_h2g(long);
 	void get_g();
 	string get_name();
 };
 
 class Point_int : public Point{
-private:
-	int * coords;
 public:
+	int * coords;
+
 	Point_int(int *,string);
 	~Point_int();
-	float get_coord(const int& i,const float& v_i);	
+	float get_multcoord(const int& i,const float& v_i);	
 	void print_coords();
+	void* get_coords();
+	double abs();
 };
 
 #endif

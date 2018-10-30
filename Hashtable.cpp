@@ -100,7 +100,7 @@ long long Hashtable::phi_hash(Point& p) { // applying hash function
 		float temp = 0.0;
 		for (int i = 0; i < Point::d; ++i)
 		{
-			temp += p.get_coord(i,(*it_v)[i]);
+			temp += p.get_multcoord(i,(*it_v)[i]);
 		}
 
 		// adding two fractions
@@ -156,14 +156,38 @@ void Hashtable::print_table(void) {
 }
 
 
-pair<Point *,double> Hashtable::NN(Point * query,double(*metric)(Point *,Point *)) {
+DPnt Hashtable::NN(Point * query,double(*metric)(Point *,Point *),DPnt lastnn) {
 	unsigned long buc = table.bucket(phi_hash(*query));
-	cout << "For query:";
+	cout << "Bucket of " << query->get_name();
 	query->print_coords();
-	for ( auto local_it = table.begin(buc); local_it!= table.end(buc); ++local_it )
-	    {
-	    	std::cout << " " << local_it->second->get_name() << endl;
-	    }
+
+	Point * neighbour = NULL;
+	DPnt min(lastnn);
+	for ( auto local_it = table.begin(buc); local_it!= table.end(buc); ++local_it ){
+	    neighbour = local_it->second;
+	    std::cout << " " << neighbour->get_name() << endl;
+
+	    double temp = metric(query,neighbour);
+	    if( min.first==NULL && min.second<0 ) {
+	    	min.first = neighbour;
+	    	min.second = temp;
+	    } else {
+		    if( temp<min.second ) {
+		    	min.first = neighbour;
+		    	min.second = temp;
+		    }
+		}
+		cout << "Distance " << query->get_name();
+		cout << "-" << neighbour->get_name();
+		cout << ": " << temp << endl;
+	}
+
+	if( min.first ) {
+		cout << "NN of bucket: " << min.first->get_name();
+		min.first->print_coords();
+	} 
+	return min;
+
 }
 
 

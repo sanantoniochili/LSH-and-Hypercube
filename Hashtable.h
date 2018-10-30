@@ -13,6 +13,8 @@
 
 using namespace std;
 
+typedef pair<Point *,double> DPnt;
+
 class Hashtable{
 private:
 	forward_list<float> t;
@@ -30,7 +32,7 @@ public:
 	long long phi_hash(Point&); // 1:pos,2:v_coordinate
 	void fill(std::vector<Point *>&);
 	void print_table();
-	pair<Point *,double> NN(Point *,double(*metric)(Point *,Point *));
+	DPnt NN(Point *,double(*metric)(Point *,Point *),DPnt);
 
 };
 
