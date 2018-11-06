@@ -19,10 +19,11 @@ DPnt NN_exhaustive(Point *,double(*metric)(Point *,Point *),double,vector<DPnt>&
 
 int main(int argc, char const *argv[])
 {
-	// reading flags
 	string filename = "";
 	string repeat,query_file = "";
 	string output_file = "";
+
+	// reading flags
 	for (int i=0 ; i<argc ; i++) {
 		if( strcmp(argv[i],"-L")==0 ){
 			L = stoi(argv[++i]);
@@ -65,6 +66,7 @@ int main(int argc, char const *argv[])
 		string delimiter = " ";
 		string number,line,metric;
 		
+		// read name of metric used
 		getline(infile,metric);
 
 		int countlines = 0;
@@ -106,12 +108,13 @@ int main(int argc, char const *argv[])
 	    }
 	    infile.close();
 
-	    //init hashtables
+	    // initialize hashtables
 	    for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter ) // for each hashtable
 		{
 		  	(*iter)->fill(vec,metric);
 		}
 
+		// ask for files if not provided
 	    if( query_file.compare("")==0 ){
 			cout << "Enter path of query file:" << endl;
 			cin >> query_file;
@@ -141,6 +144,7 @@ int main(int argc, char const *argv[])
 		double R = stod(radius);
 		cout << "Radius: " << R << endl;
 
+		// get query points
 	    while (getline(qinfile,line))
 	    {
 	    	size_t pos = 0;
@@ -169,13 +173,15 @@ int main(int argc, char const *argv[])
 	    DPnt nn,e_nn;
 	    clock_t begin,end,begin_e,end_e;
 
+	    // default metric is euclidean
 	    double (*metric_ptr)(Point *,Point *) = &euclidean;
-	    if ( metric[0]=='c' )
+	    if ( metric[0]=='c' ) // for cosine similarity
 	    {
 	    	metric_ptr = &cosine_similarity;
 	    }
 	    for (int i = 0; i < queries.size(); ++i) // for every query
 	    {
+	    	// searching for nearest neighbours
   			begin = clock();
 			nn = Hl.NN(queries[i],metric,metric_ptr,R,nns);
 			end = clock();
@@ -200,6 +206,7 @@ int main(int argc, char const *argv[])
 
 	    }
 		outfile.close();
+
 	 	// free space
 	 	for (int i = 0; i < vec.size(); ++i)
 	 	{

@@ -23,6 +23,8 @@ int main(int argc, char const *argv[])
 	string filename = "";
 	string repeat,query_file = "";
 	string output_file = "";
+
+	// reading flags
 	for (int i=0 ; i<argc ; i++) {
 		if( strcmp(argv[i],"-M")==0 ){
 			Mp = stoi(argv[++i]);
@@ -111,6 +113,7 @@ int main(int argc, char const *argv[])
 	    Cube * C = new Cube((float)vec.size()/(float)Hashtable::k);
 	    C->fill(vec,metric);
 	    
+	    // ask for files if not provided
 	    if( query_file.compare("")==0 ){
 			cout << "Enter path of query file:" << endl;
 			cin >> query_file;
@@ -139,6 +142,7 @@ int main(int argc, char const *argv[])
 		double R = stod(radius);
 		cout << "Radius: " << R << endl;
 
+		// get query points
 	    while (getline(qinfile,line))
 	    {
 	    	size_t pos = 0;
@@ -166,26 +170,25 @@ int main(int argc, char const *argv[])
 	    std::vector<DPnt> nns,e_nns;
 	    DPnt nn,e_nn;
 	    clock_t begin,end,begin_e,end_e;
+
+	   	// default metric is euclidean
+	    double (*metric_ptr)(Point *,Point *) = &euclidean;
+	    if ( metric[0]=='c' ) // for cosine similarity
+	    {
+	    	metric_ptr = &cosine_similarity;
+	    }
 	    for (int i = 0; i < queries.size(); ++i)
 	    {
-	    	if( metric[0]=='c' ) {
-  				begin = clock();
-			    nn = C->NN(queries[i],metric,&cosine_similarity,probes,Mp,R,nns);
-			    end = clock();
+	    	// searching for nearest neighbours
+  			begin = clock();
+			nn = C->NN(queries[i],metric,metric_ptr,probes,Mp,R,nns);
+			end = clock();
 			    
-			    begin_e = clock();
-			    e_nn = NN_exhaustive(queries[i],&cosine_similarity,R,e_nns,vec);
-				end_e = clock();
-			} else {
-				begin = clock();
-				nn = C->NN(queries[i],metric,&euclidean,probes,Mp,R,nns);
-				end = clock();
-				
-				begin_e = clock();
-				e_nn = NN_exhaustive(queries[i],&euclidean,R,e_nns,vec);
-				end_e = clock();
-			}
+			begin_e = clock();
+			e_nn = NN_exhaustive(queries[i],metric_ptr,R,e_nns,vec);
+			end_e = clock();
 
+			// printing to output file
 			outfile << "Query: " << queries[i]->get_name() << std::endl;
 			outfile << "R-near neighbors:" << std::endl;
 			for (int i = 0; i < nns.size(); ++i)
@@ -200,10 +203,8 @@ int main(int argc, char const *argv[])
 			
 
 	    }
-
-
-
 		outfile.close();
+		
 	 	// free space
 	 	delete C;
 	 	for (int i = 0; i < vec.size(); ++i)
