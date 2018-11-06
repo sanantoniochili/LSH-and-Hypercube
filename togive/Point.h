@@ -37,10 +37,10 @@ public:
 
 	Point_int(int *,string);
 	~Point_int();
-	float get_multcoord(const int& i,const float& v_i);	
+	float get_multcoord(const int& i,const float& v_i);	// multiplication of float v_i with coordinate i of point
 	void print_coords();
 	void* get_coords();
-	double abs();
+	double abs(); // ||<point>|| 
 };
 
 #endif

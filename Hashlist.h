@@ -18,7 +18,7 @@ public:
 
 	Hashlist(int,float);
 	~Hashlist();
-	DPnt NN(Point *,double(*metric)(Point *,Point *));
+	DPnt NN(Point *,string,double(*metric)(Point *,Point *),double,vector<DPnt>&);
 };
 
 #endif

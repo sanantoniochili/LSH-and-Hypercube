@@ -7,11 +7,12 @@
 
 using namespace std::chrono; 
 
-int Hashtable::k = 4;
+int Hashtable::k = 3;
 int Hashtable::w = 4;
 int Hashtable::d = 20; //128
 int Point::d = 20; //128
-int L = 5;
+int Mp = 10;
+int probes = 2;
 
 double euclidean(Point *, Point *);
 double cosine_similarity(Point *,Point *);
@@ -23,9 +24,13 @@ int main(int argc, char const *argv[])
 	string repeat,query_file = "";
 	string output_file = "";
 	for (int i=0 ; i<argc ; i++) {
-		if( strcmp(argv[i],"-L")==0 ){
-			L = stoi(argv[++i]);
-			cout << "defined L:" << L << "\t";
+		if( strcmp(argv[i],"-M")==0 ){
+			Mp = stoi(argv[++i]);
+			cout << "defined M:" << Mp << "\t";
+		}
+		if( strcmp(argv[i],"-probes")==0 ){
+			probes = stoi(argv[++i]);
+			cout << "defined probes:" << probes << "\t";
 		}
 		if( strcmp(argv[i],"-k")==0 ){
 			Hashtable::k = stoi(argv[++i]);
@@ -58,7 +63,6 @@ int main(int argc, char const *argv[])
 	        return -1;
 	  	}
 
-	  	Hashlist Hl(L,2.0); // create list of hashtables and fill with points
 	  	vector<Point *> vec;
 
 		string delimiter = " ";
@@ -104,13 +108,9 @@ int main(int argc, char const *argv[])
 	    }
 	    infile.close();
 
-
-	    for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter ) // for each hashtable
-	    {
-	    	(*iter)->fill(vec);
-	    }
-
-	    //query_file = "../siftsmall/final_query";
+	    Cube * C = new Cube((float)vec.size()/(float)Hashtable::k);
+	    C->fill(vec,metric);
+	    
 	    if( query_file.compare("")==0 ){
 			cout << "Enter path of query file:" << endl;
 			cin >> query_file;
@@ -170,7 +170,7 @@ int main(int argc, char const *argv[])
 	    {
 	    	if( metric[0]=='c' ) {
   				begin = clock();
-			    nn = Hl.NN(queries[i],&cosine_similarity,R,nns);
+			    nn = C->NN(queries[i],metric,&cosine_similarity,probes,Mp,R,nns);
 			    end = clock();
 			    
 			    begin_e = clock();
@@ -178,7 +178,7 @@ int main(int argc, char const *argv[])
 				end_e = clock();
 			} else {
 				begin = clock();
-				nn = Hl.NN(queries[i],&euclidean,R,nns);
+				nn = C->NN(queries[i],metric,&euclidean,probes,Mp,R,nns);
 				end = clock();
 				
 				begin_e = clock();
@@ -193,9 +193,9 @@ int main(int argc, char const *argv[])
 				outfile << nns[i].first->get_name() << std::endl;
 			}
 			outfile << "Nearest neighbor: " << nn.first->get_name() << endl;
-			outfile << "distanceLSH: " << (double)nn.second << endl;
+			outfile << "distanceCube: " << (double)nn.second << endl;
 			outfile << "distanceTrue: " << (double)e_nn.second << endl;
-			outfile << "tLSH: " << double(end - begin) / CLOCKS_PER_SEC << endl;
+			outfile << "tCube: " << double(end - begin) / CLOCKS_PER_SEC << endl;
 			outfile << "tTrue: " << double(end_e - begin_e) / CLOCKS_PER_SEC << endl;
 			
 
@@ -205,6 +205,7 @@ int main(int argc, char const *argv[])
 
 		outfile.close();
 	 	// free space
+	 	delete C;
 	 	for (int i = 0; i < vec.size(); ++i)
 	 	{
 	 		delete vec[i];

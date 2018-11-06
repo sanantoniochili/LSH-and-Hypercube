@@ -30,22 +30,22 @@ Hashlist::~Hashlist() {
 	}
 }
 
-DPnt Hashlist::NN(Point * query,double (*metric)(Point *,Point *)) {
+DPnt Hashlist::NN(Point * query,string metric_name,double (*metric)(Point *,Point *),double R,vector<DPnt>& nns) {
 	DPnt min(NULL,-1);
 	int count = 1;
 	for ( auto iter = list.begin(); iter != list.end(); ++iter ) // for each hashtable
 	{
-		cout << "--Hashtable " << count++ << "--" << endl; 
-		min = (*iter)->NN(query,metric,min);
+		//cout << "--Hashtable " << count++ << "--" << endl; 
+		min = (*iter)->NN(query,metric_name,metric,min,R,nns);
 	}
 
-	if( min.first ){
+	/*if( min.first ){
 		cout << query->get_name();
 		query->print_coords();
 		cout << "Final NN: " << min.first->get_name();
 		min.first->print_coords();
 	} else{
 		cout << "**Found no neighbours.\n" << endl;
-	}
+	}*/
 	return min;
 }

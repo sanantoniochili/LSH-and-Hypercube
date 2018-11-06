@@ -18,7 +18,8 @@ double cosine_similarity(Point *,Point *);
 DPnt NN_exhaustive(Point *,double(*metric)(Point *,Point *),double,vector<DPnt>&,vector<Point *>&);
 
 int main(int argc, char const *argv[])
-{	
+{
+	// reading flags
 	string filename = "";
 	string repeat,query_file = "";
 	string output_file = "";
@@ -46,7 +47,6 @@ int main(int argc, char const *argv[])
     }
     cout << endl;
 	do {
-		//filename = "../siftsmall/final_small";
 		if( filename.compare("")==0 ) {
 			cout << "Enter path of dataset:" << endl;
 			cin >> filename;
@@ -58,6 +58,7 @@ int main(int argc, char const *argv[])
 	        return -1;
 	  	}
 
+	  	// creating list of hashtables
 	  	Hashlist Hl(L,2.0); // create list of hashtables and fill with points
 	  	vector<Point *> vec;
 
@@ -71,7 +72,7 @@ int main(int argc, char const *argv[])
 	    {
 
 	    	size_t pos = 0;
-	    	if( countlines==0 ) {
+	    	if( countlines==0 ) { // first read to count dimensions
 	    		int count = 0;
 	    		while (((pos = line.find(delimiter)) != std::string::npos)) {
 				    number = line.substr(0, pos);
@@ -83,8 +84,9 @@ int main(int argc, char const *argv[])
 				countlines++;
 	    	}
 
+	    	// creating a vector of input points
 	    	pos = 0;
-	    	int * array = new int[Point::d];
+	    	int * array = new int[Point::d]; // every point includes an array of coordinates
 	    	int count = 0;
 	    	string name;
 			while (((pos = line.find(delimiter)) != std::string::npos) && count <= Point::d) {
@@ -104,13 +106,12 @@ int main(int argc, char const *argv[])
 	    }
 	    infile.close();
 
-
+	    //init hashtables
 	    for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter ) // for each hashtable
-	    {
-	    	(*iter)->fill(vec);
-	    }
+		{
+		  	(*iter)->fill(vec,metric);
+		}
 
-	    //query_file = "../siftsmall/final_query";
 	    if( query_file.compare("")==0 ){
 			cout << "Enter path of query file:" << endl;
 			cin >> query_file;
@@ -129,6 +130,7 @@ int main(int argc, char const *argv[])
 		string qnumber,radius,radline;
 		size_t pos = 0;
 
+		// reading search radius and creating vector of query points
 		getline(qinfile,radline);
 		for (int i = 0; i < 2; ++i)
 		{
@@ -166,26 +168,23 @@ int main(int argc, char const *argv[])
 	    std::vector<DPnt> nns,e_nns;
 	    DPnt nn,e_nn;
 	    clock_t begin,end,begin_e,end_e;
-	    for (int i = 0; i < queries.size(); ++i)
-	    {
-	    	if( metric[0]=='c' ) {
-  				begin = clock();
-			    nn = Hl.NN(queries[i],&cosine_similarity,R,nns);
-			    end = clock();
-			    
-			    begin_e = clock();
-			    e_nn = NN_exhaustive(queries[i],&cosine_similarity,R,e_nns,vec);
-				end_e = clock();
-			} else {
-				begin = clock();
-				nn = Hl.NN(queries[i],&euclidean,R,nns);
-				end = clock();
-				
-				begin_e = clock();
-				e_nn = NN_exhaustive(queries[i],&euclidean,R,e_nns,vec);
-				end_e = clock();
-			}
 
+	    double (*metric_ptr)(Point *,Point *) = &euclidean;
+	    if ( metric[0]=='c' )
+	    {
+	    	metric_ptr = &cosine_similarity;
+	    }
+	    for (int i = 0; i < queries.size(); ++i) // for every query
+	    {
+  			begin = clock();
+			nn = Hl.NN(queries[i],metric,metric_ptr,R,nns);
+			end = clock();
+			    
+			begin_e = clock();
+			e_nn = NN_exhaustive(queries[i],metric_ptr,R,e_nns,vec);
+			end_e = clock();
+
+			// printing to output file
 			outfile << "Query: " << queries[i]->get_name() << std::endl;
 			outfile << "R-near neighbors:" << std::endl;
 			for (int i = 0; i < nns.size(); ++i)
@@ -200,9 +199,6 @@ int main(int argc, char const *argv[])
 			
 
 	    }
-
-
-
 		outfile.close();
 	 	// free space
 	 	for (int i = 0; i < vec.size(); ++i)
@@ -262,15 +258,7 @@ DPnt NN_exhaustive(Point * query,double(*metric)(Point *,Point *),double R,vecto
 		    	nns.push_back(make_pair(points[i],temp));
 		    }
 		}
-		/*cout << "Distance " << query->get_name();
-		cout << "-" << neighbour->get_name();
-		cout << ": " << temp << endl;*/
 	}
-
-	/*if( min.first ) {
-		cout << "NN of bucket: " << min.first->get_name();
-		min.first->print_coords();
-	} */
 	return min;
 
 }

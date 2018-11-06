@@ -163,22 +163,22 @@ void Hashtable::print_table(void) {
 
 
 DPnt Hashtable::NN(Point * query,double(*metric)(Point *,Point *),DPnt lastnn,double R,vector<DPnt>& nns) {
-	unsigned long buc = table.bucket(phi_hash(*query));
+	unsigned long buc = table.bucket(phi_hash(*query)); // getting bucket number of query
 	/*cout << "Bucket of " << query->get_name();
 	query->print_coords();*/
 
 	Point * neighbour = NULL;
-	DPnt min(lastnn);
+	DPnt min(lastnn); // init with previous nearest neighbour
 
 	for ( auto local_it = table.begin(buc); local_it!= table.end(buc); ++local_it ){
 	    neighbour = local_it->second;
-	    //std::cout << " " << neighbour->get_name() << endl;
 
 	    double dist = metric(query,neighbour);
 	    if( min.first==NULL && min.second<0 ) {
 	    	min.first = neighbour;
 	    	min.second = dist;
 	    } else {
+	    	// using g values to determine neighbourhood
 	    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
 			    if( dist<min.second ) {
 			    	min.first = neighbour;

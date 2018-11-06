@@ -10,6 +10,7 @@
 #include <climits>
 #include <utility>
 #include <functional>
+#include <bitset>
 #include "Hashtable.h"
 
 using namespace std;
@@ -25,9 +26,14 @@ Hashtable::Hashtable(float loadfactor) {
 		std::forward_list<float>::iterator it_t = t.before_begin();
 		std::forward_list<int>::iterator it_r = r.before_begin();
 		std::forward_list<float *>::iterator it_v = v.before_begin();
-  		
-  		default_random_engine generator (seed);
-		normal_distribution<double> ndistr (0.0,1.0); // Gaussian distribution
+
+		// random device class instance, source of 'true' randomness for initializing random seed
+	    std::random_device rd; 
+
+	    // Mersenne twister PRNG, initialized with seed from previous random device instance
+	    std::mt19937 generator(rd()); 
+
+		normal_distribution<float> ndistr (0.0,1.0); // Gaussian distribution
 		srand( time( NULL ) );
 		
 		for (int i = 0; i < k; ++i) // for every v vector of k hashtables
@@ -93,28 +99,28 @@ long long Hashtable::phi_hash(Point& p) { // applying hash function
 	std::forward_list<int>::iterator it_r = r.begin();
 	
 	long long res = 0;
-
 	for (int i = 0; i < k; ++i) // for every h_i()
 	{
 		// calculating h()
-		float temp = 0.0;
+		long long temp = 0.0;
 		for (int i = 0; i < Point::d; ++i)
 		{
-			temp += p.get_multcoord(i,(*it_v)[i]);
+			temp += (p.get_multcoord(i,(*it_v)[i])/(float)w);
 		}
 
 		// adding two fractions
-		temp /= (float)w;
 		temp += (*it_t / (float)w);
-		long h = floor (temp);
-		p.add_h2g(h);
+		long long h = floor (temp);
+		p.add_h2g(abs(h));
 		
+		long a = mod(*it_r,M);
+		long b = mod(h,M);
 		// multiply with r and apply mod M
-		if( multOvf(*it_r,h) ) { // check for overflow
+		if( multOvf(a,b) ) { // check for overflow
 			cout << "Overflow detected" << endl;
 			exit (-1);
 		}
-		long res_i = mod(((*it_r)*h),M);
+		long res_i = mod(a*b,M);
 
 		// add to result 
 		if( addOvf(res_i,res) ) { // check for overflow
@@ -134,12 +140,47 @@ long long Hashtable::phi_hash(Point& p) { // applying hash function
 	return res;
 }
 
-void Hashtable::fill(std::vector<Point *>& points) {
-	for (int i = 0; i < points.size(); ++i)
-	{
-		table.insert(make_pair(phi_hash(*(points[i])),points[i]));
+
+void Hashtable::fill(std::vector<Point *>& points, string metric) {
+	if( metric[0]=='c' ) {
+		for (int i = 0; i < points.size(); ++i)
+		{
+			table.insert(make_pair(bit_hash(*(points[i])),points[i]));
+		}
+	} else {
+		for (int i = 0; i < points.size(); ++i)
+		{
+			table.insert(make_pair(phi_hash(*(points[i])),points[i]));
+		}
 	}
 
+}
+
+long long Hashtable::bit_hash(Point& p) { // applying hash function 
+	std::forward_list<float *>::iterator it_v = v.begin();
+	
+	// creating bit string
+	char res[k+1];
+	for (int i = 0; i < k; ++i) // for every h_i()
+	{
+		// calculating r_i * p
+		long long temp = 0.0;
+		for (int i = 0; i < Point::d; ++i)
+		{
+			temp += p.get_multcoord(i,(*it_v)[i]);
+		}
+
+		int h = (temp >= 0);
+		p.add_h2g(h);
+		if( h==0 ) res[i] = '0';
+		else res[i] = '1';		
+
+		// proceed with next h()
+		it_v++;
+	}
+	res[k] = '\0';
+	unsigned long long number =  strtoull (res, NULL, 2);
+	return number;
 }
 
 void Hashtable::print_table(void) {
@@ -156,43 +197,40 @@ void Hashtable::print_table(void) {
 }
 
 
-DPnt Hashtable::NN(Point * query,double(*metric)(Point *,Point *),DPnt lastnn) {
-	unsigned long buc = table.bucket(phi_hash(*query));
-	cout << "Bucket of " << query->get_name();
-	query->print_coords();
-
-	Point * neighbour = NULL;
-	DPnt min(lastnn);
-	for ( auto local_it = table.begin(buc); local_it!= table.end(buc); ++local_it ){
-	    neighbour = local_it->second;
-	    std::cout << " " << neighbour->get_name() << endl;
-
-	    double temp = metric(query,neighbour);
-	    if( min.first==NULL && min.second<0 ) {
-	    	min.first = neighbour;
-	    	min.second = temp;
-	    } else {
-		    if( temp<min.second ) {
-		    	min.first = neighbour;
-		    	min.second = temp;
-		    }
-		}
-		cout << "Distance " << query->get_name();
-		cout << "-" << neighbour->get_name();
-		cout << ": " << temp << endl;
+DPnt Hashtable::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),DPnt lastnn,double R,vector<DPnt>& nns) {
+	unsigned long buc = 0;
+	if( metric_name[0]=='c' ){
+		buc = table.bucket(bit_hash(*query));
+	}else{
+		buc = table.bucket(phi_hash(*query)); // getting bucket number of query
 	}
 
-	if( min.first ) {
-		cout << "NN of bucket: " << min.first->get_name();
-		min.first->print_coords();
-	} 
+	Point * neighbour = NULL;
+	DPnt min(lastnn); // init with previous nearest neighbour
+
+	for ( auto local_it = table.begin(buc); local_it!= table.end(buc); ++local_it ){
+	    neighbour = local_it->second;
+
+	    double dist = metric(query,neighbour);
+	    if( min.first==NULL && min.second<0 ) {
+	    	min.first = neighbour;
+	    	min.second = dist;
+	    } else {
+	    	// using g values to determine neighbourhood
+	    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+			    if( dist<min.second ) {
+			    	min.first = neighbour;
+			    	min.second = dist;
+			    }
+			    if( dist<=R ) {
+			    	nns.push_back(make_pair(neighbour,dist));
+			    }
+			//}
+		}
+	}
 	return min;
 
 }
-
-
-
-
 
 /* Fuction to check overflow on addition.
    credits: https://www.geeksforgeeks.org */
@@ -221,4 +259,162 @@ bool multOvf(long a, long b)
 
 long long mod(long long a, unsigned long b) {
 	return (abs(a) % b + b) % b; // absolute value to restrict size of
+}
+
+Cube::Cube(float loadfactor) : Hashtable(loadfactor) {
+	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+	srand( time( NULL ) );
+
+	std::forward_list<float>::iterator it_f = f.before_begin();
+	for (int i = 0; i < k; ++i) // for every v vector of k hashtables
+	{
+		// k parameters of f
+		float value = (rand() / (RAND_MAX + 1.0));
+		it_f = f.insert_after(it_f, value);
+	}
+
+}
+Cube::~Cube() {}
+
+string Cube::cube_hash(Point& p, string metric) { // applying hash function 
+	std::forward_list<float *>::iterator it_v = v.begin();
+	std::forward_list<float>::iterator it_t = t.begin();
+	std::forward_list<int>::iterator it_r = r.begin();
+	std::forward_list<float>::iterator it_f = f.begin();
+	
+	string res = "";
+	// calculating h()
+	for (int i = 0; i < k; ++i) // for every h_i()
+	{
+		if( metric[0]=='c' ){
+			// cosine similarity
+			// calculating r_i * p
+			long long temp = 0.0;
+			for (int i = 0; i < Point::d; ++i)
+			{
+				temp += p.get_multcoord(i,(*it_v)[i]);
+			}
+
+			int h = (temp >= 0);
+			p.add_h2g(h);		
+
+			string bit = std::to_string((*it_f)*temp >= 0.5);
+			res += bit;
+		} else {
+
+			// euclidean
+			long long temp = 0.0;
+			for (int i = 0; i < Point::d; ++i)
+			{
+				temp += (p.get_multcoord(i,(*it_v)[i])/(float)w);
+			}
+
+			// adding two fractions
+			temp += (*it_t / (float)w);
+			long long h = floor (temp);
+			p.add_h2g(abs(h));
+		
+			string bit = std::to_string(abs((*it_f)*h) >= 0.5);
+			res += bit;
+		}
+		// proceed with next h()
+		it_v++;
+		it_t++;
+		it_r++;
+		it_f++;
+
+	}
+	return res;
+}
+
+void Cube::fill(std::vector<Point *>& points, string metric) {
+	for (int i = 0; i < points.size(); ++i)
+	{
+		cube.insert(make_pair(cube_hash(*(points[i]),metric),points[i]));
+	}
+
+}
+
+DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),int probes, int M, double R,vector<DPnt>& nns) {
+	unsigned long buc = cube.bucket(cube_hash(*query,metric_name));
+	/*cout << "Bucket of " << query->get_name();
+	query->print_coords();*/
+
+	Point * neighbour = NULL;
+	DPnt min(NULL,-1);
+
+	for ( auto local_it = cube.begin(buc); local_it!= cube.end(buc); ++local_it ){
+	    neighbour = local_it->second;
+
+	    double dist = metric(query,neighbour);
+	    if( min.first==NULL && min.second<0 ) {
+	    	min.first = neighbour;
+	    	min.second = dist;
+	    } else {
+	    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+			    if( dist<min.second ) {
+			    	min.first = neighbour;
+			    	min.second = dist;
+			    }
+			    if( dist<=R ) {
+			    	nns.push_back(make_pair(neighbour,dist));
+			    }
+			//}
+		}
+		if( --M==0 ) return min;
+	}
+	probes--;
+	float half = (float)probes /(float) 2;
+	int maxb = ceil(buc+half);
+	for (int i = buc; i < maxb; ++i)
+	{
+		for ( auto local_it = cube.begin(i); local_it!= cube.end(i); ++local_it ){
+		    neighbour = local_it->second;
+
+		    double dist = metric(query,neighbour);
+		    if( min.first==NULL && min.second<0 ) {
+		    	min.first = neighbour;
+		    	min.second = dist;
+		    } else {
+		    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+				    if( dist<min.second ) {
+				    	min.first = neighbour;
+				    	min.second = dist;
+				    }
+				    if( dist<=R ) {
+				    	nns.push_back(make_pair(neighbour,dist));
+				    }
+				//}
+			}
+			if( --M==0 ) return min;
+		}
+	}
+	int minb = floor(buc-half);
+	for (int i = minb; i < buc; ++i)
+	{
+		for ( auto local_it = cube.begin(i); local_it!= cube.end(i); ++local_it ){
+		    neighbour = local_it->second;
+
+		    double dist = metric(query,neighbour);
+		    if( min.first==NULL && min.second<0 ) {
+		    	min.first = neighbour;
+		    	min.second = dist;
+		    } else {
+		    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+				    if( dist<min.second ) {
+				    	min.first = neighbour;
+				    	min.second = dist;
+				    }
+				    if( dist<=R ) {
+				    	nns.push_back(make_pair(neighbour,dist));
+				    }
+				//}
+			}
+			if( --M==0 ) return min;
+		}
+	}
+
+
+	return min;
+
 }
