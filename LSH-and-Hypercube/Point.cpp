@@ -52,3 +52,28 @@ double Point_int::abs() {
 	}
 	return sqrt(sum);
 }
+
+Point_double::Point_double(double * array, string nname) : Point(nname),coords(array) {}
+Point_double::~Point_double(void) { delete[] coords; }
+// multiplication of float v_i with coordinate i of point
+float Point_double::get_multcoord(const int& i, const float& v_i) { // res is result of mult := (coordinate i of Vector)*v_i 
+	return (float)v_i*coords[i];	
+}
+void Point_double::print_coords(void) {
+	for (int i = 0; i < d; ++i)
+	{
+		cout << '\t' << this->coords[i];
+	}
+	cout << endl;
+}
+void* Point_double::get_coords() {
+	return coords;
+}
+double Point_double::abs() {
+	double sum = 0;
+	for (int i = 0; i < d; ++i)
+	{
+		sum += coords[i]*coords[i];
+	}
+	return sqrt(sum);
+}

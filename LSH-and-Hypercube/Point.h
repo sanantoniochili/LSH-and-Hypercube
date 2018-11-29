@@ -43,4 +43,16 @@ public:
 	double abs(); // ||<point>|| 
 };
 
+class Point_double : public Point{
+public:
+	double * coords;
+
+	Point_double(double *,string);
+	~Point_double();
+	float get_multcoord(const int& i,const float& v_i);	// multiplication of float v_i with coordinate i of point
+	void print_coords();
+	void* get_coords();
+	double abs(); // ||<point>|| 
+};
+
 #endif
