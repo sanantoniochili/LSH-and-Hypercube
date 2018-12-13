@@ -94,12 +94,7 @@ int main (int argc, char const *argv[]) {
 	clock_t begin,end,begin_e,end_e;
 	//Cs->iter1(iter,metric_ptr);	
 	Cs->iter2(iter,metric_ptr);
-
-	//Cs->rand_centr();
-	//Cs->print_points();
-	//Cs->lloyds_assign(metric_ptr);
 	Cs->print_points();
-	//Cs->lloyds_
 
 
 

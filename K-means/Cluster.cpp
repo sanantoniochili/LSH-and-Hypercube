@@ -124,9 +124,9 @@ void Clusters::lloyds_assign(double (*metric)(Point *,Point *)) {
 			match[i].second = (*it); // assign same centroid
 			obf.push_back(0); // keep min distance 
 		} else {
-		DCnt cnt_dist = closest_centr(match[i].first,metric); // find closest centroid
-		match[i].second = cnt_dist.first; // assign closest centroid
-		obf.push_back(pow(cnt_dist.second,2.0)); // keep min distance 
+			DCnt cnt_dist = closest_centr(match[i].first,metric); // find closest centroid
+			match[i].second = cnt_dist.first; // assign closest centroid
+			obf.push_back(pow(cnt_dist.second,2.0)); // keep min distance 
 		}
 	}
 }
@@ -147,7 +147,7 @@ void Clusters::lloyds_update(double (*metric)(Point *,Point *)) {
 		for (int j = 0; j < match.size(); ++j)
 		{
 			if( match[j].second==i ) {
-				double * coords = (double *)(match[i].first)->get_coords();
+				double * coords = (double *)(match[j].first)->get_coords();
 				for (int c= 0; c < Point::d; ++c)
 				{
 					means[i][c] += coords[c]; // calculate mean values of coordinates
@@ -164,7 +164,6 @@ void Clusters::lloyds_update(double (*metric)(Point *,Point *)) {
 	}
 
 
-	centrs.clear(); // clear last centroids
 	for (int i = 0; i < k; ++i)
 	{
 		double * array = new double[Point::d];
@@ -174,7 +173,7 @@ void Clusters::lloyds_update(double (*metric)(Point *,Point *)) {
 		}
 		Point_double * p = new Point_double(array,"mean"); // create a point with mean values
 		DCnt dcnt = closest_to_virtual(p,i,metric);
-		centrs.push_back(dcnt.first);
+		centrs[i] = dcnt.first;
 
 		delete p;
 	}
@@ -182,8 +181,15 @@ void Clusters::lloyds_update(double (*metric)(Point *,Point *)) {
 }
 
 void Clusters::lloyds_update_virtual(double (*metric)(Point *,Point *)) {
-	double means[k][Point::d];
+	//remove virtual points
+	if( match.size()==N+k ) {
+		for (int i = 0; i < k; ++i)
+		{
+			match.pop_back();
+		}
+	}
 
+	double means[k][Point::d];
 	for (int i = 0; i < k; ++i)
 	{
 		for (int c = 0; c < Point::d; ++c)
@@ -199,7 +205,7 @@ void Clusters::lloyds_update_virtual(double (*metric)(Point *,Point *)) {
 		for (int j = 0; j < match.size(); ++j)
 		{
 			if( match[j].second==i ) { // if it belongs to cluster i
-				double * coords = (double *)(match[i].first)->get_coords();
+				double * coords = (double *)(match[j].first)->get_coords();
 				for (int c= 0; c < Point::d; ++c)
 				{
 					means[i][c] += coords[c]; 
@@ -228,19 +234,22 @@ void Clusters::lloyds_update_virtual(double (*metric)(Point *,Point *)) {
 
 
 
-	centrs.clear(); // clear last centroids and add new
+	//centrs.clear(); // clear last centroids and add new
 	for (int i = 0; i < k; ++i)
 	{
-		centrs.push_back(N+i);
-	}
+		centrs[i] = N+i;
+	} 
 
+}
+
+void Clusters::lloyds_virtual_clean() {
 	//remove virtual points
 	if( match.size()==N+k ) {
 		for (int i = 0; i < k; ++i)
 		{
 			match.pop_back();
 		}
-	} 
+	}
 }
 
 
@@ -295,5 +304,6 @@ void Clusters::iter2(int count, double (*metric)(Point *,Point *)) {
 		lloyds_update_virtual(metric);
 		lloyds_assign(metric);
 	}
+	lloyds_virtual_clean();
 
 }

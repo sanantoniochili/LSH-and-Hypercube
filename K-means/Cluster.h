@@ -29,6 +29,7 @@ public:
 	void lloyds_assign(double (*metric)(Point *,Point *));
 	void lloyds_update(double (*metric)(Point *,Point *));
 	void lloyds_update_virtual(double (*metric)(Point *,Point *));
+	void lloyds_virtual_clean();
 	void PAM_update(double (*metric)(Point *,Point *));
 
 	void iter1(int count, double (*metric)(Point *,Point *));
