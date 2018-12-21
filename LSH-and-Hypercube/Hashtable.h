@@ -13,7 +13,7 @@
 
 using namespace std;
 
-typedef pair<Point *,double> DPnt;
+//typedef pair<Point *,double> DPnt;
 
 class Hashtable{
 protected:

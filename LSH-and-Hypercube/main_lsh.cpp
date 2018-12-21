@@ -59,15 +59,22 @@ int main(int argc, char const *argv[])
 	        return -1;
 	  	}
 
-	  	// creating list of hashtables
-	  	Hashlist Hl(L,2.0); // create list of hashtables and fill with points
-	  	vector<Point *> vec;
-
 		string delimiter = " ";
 		string number,line,metric;
 		
 		// read name of metric used
 		getline(infile,metric);
+
+		// default metric is euclidean
+	    double (*metric_ptr)(Point *,Point *) = &euclidean;
+	    if ( metric[0]=='c' ) // for cosine similarity
+	    {
+	    	metric_ptr = &cosine_similarity;
+	    }
+	    
+		// creating list of hashtables
+	  	Hashlist Hl(L,2.0); // create list of hashtables and fill with points
+	  	vector<Point *> vec;
 
 		int countlines = 0;
 	    while (getline(infile,line))
@@ -173,12 +180,6 @@ int main(int argc, char const *argv[])
 	    DPnt nn,e_nn;
 	    clock_t begin,end,begin_e,end_e;
 
-	    // default metric is euclidean
-	    double (*metric_ptr)(Point *,Point *) = &euclidean;
-	    if ( metric[0]=='c' ) // for cosine similarity
-	    {
-	    	metric_ptr = &cosine_similarity;
-	    }
 	    for (int i = 0; i < queries.size(); ++i) // for every query
 	    {
 	    	// searching for nearest neighbours

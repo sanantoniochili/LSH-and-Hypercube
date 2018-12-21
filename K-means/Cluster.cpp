@@ -232,14 +232,11 @@ void Clusters::lloyds_update_virtual(double (*metric)(Point *,Point *)) {
 		add_point(p);
 	}
 
-
-
 	//centrs.clear(); // clear last centroids and add new
 	for (int i = 0; i < k; ++i)
 	{
 		centrs[i] = N+i;
 	} 
-
 }
 
 void Clusters::lloyds_virtual_clean() {
@@ -253,12 +250,49 @@ void Clusters::lloyds_virtual_clean() {
 }
 
 
-/*void Clusters::PAM_update(double (*metric)(Point *,Point *)) {
+void Clusters::PAM_update(double (*metric)(Point *,Point *)) {
+
+	double minObj = 0;
+	for (int i = 0; i < match.size(); ++i)
+	{
+		minObj += obf[i];
+	}
 	for (int i = 0; i < k; ++i)
 	{
-		
+		for (int j = 0; j < match.size(); ++j) // swap with every point of cluster i
+		{
+			if( match[j].second==i ) { // for every point of i calculate obj fun and swap if necessary
+				if( compute_objective(i,j,metric)<minObj ) { // compare 
+					swap(i,j);
+				}
+			}
+		}
 	}
-}*/
+}
+
+double Clusters::compute_objective(int cluster, int point_i, double (*metric)(Point *,Point *)) { // swap point with specified centroid and compute new distances
+	double Obj = 0;
+	for (int i = 0; i < match.size(); ++i)
+	{
+		if( match[i].second==cluster ) { // if i belongs to cluster "cluster" 
+			Obj += pow(metric(match[i].first,match[point_i].first),2); // calculate distance from point "point_i"
+		} else {
+			Obj += obf[i]; // else add already calculated distance
+		}
+	}
+	return Obj;
+}
+
+void Clusters::swap(int cluster, int point) {
+	centrs[cluster] = point;
+	for (int i = 0; i < match.size(); ++i)
+	{
+		if ( match[i].second==cluster )
+		{
+			match[i].second = point;
+		}
+	}
+}
 
 
 DCnt Clusters::closest_to_virtual(Point * p, int cluster, double (*metric)(Point *,Point *)) {
@@ -301,7 +335,7 @@ void Clusters::iter2(int count, double (*metric)(Point *,Point *)) {
 	lloyds_assign(metric);
 	for (int i = 0; i < count; ++i)
 	{
-		lloyds_update_virtual(metric);
+		PAM_update(metric);
 		lloyds_assign(metric);
 	}
 	lloyds_virtual_clean();

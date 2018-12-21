@@ -10,8 +10,6 @@
 #include <random>
 using namespace std; 
 
-
-
 class Point{
 private:
 	string name;
@@ -30,6 +28,8 @@ public:
 	string get_g();
 	string get_name();
 };
+
+typedef pair<Point *,double> DPnt;
 
 class Point_int : public Point{
 public:
