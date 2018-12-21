@@ -96,7 +96,7 @@ int main (int argc, char const *argv[]) {
 	//Cs->iter2(iter,metric_ptr);
 	//Cs->print_points();
 	//Cs->swap(1,4);
-	Cs->print_points();
+	//Cs->print_points();
 
 
 
