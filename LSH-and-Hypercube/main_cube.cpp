@@ -7,12 +7,12 @@
 
 using namespace std::chrono; 
 
-int Hashtable::k = 3;
-int Hashtable::w = 4;
+int Hashtable::k = 100;
+int Hashtable::w = 10;
 int Hashtable::d = 20; //128
 int Point::d = 20; //128
 int Mp = 10;
-int probes = 2;
+int probes = 10;
 
 double euclidean(Point *, Point *);
 double cosine_similarity(Point *,Point *);
@@ -109,10 +109,12 @@ int main(int argc, char const *argv[])
 
 	    }
 	    infile.close();
+	    filename = "";
 
-	    Cube * C = new Cube((float)vec.size()/(float)Hashtable::k);
+	  //  Cube * C = new Cube((float)vec.size()/(float)Hashtable::k);
+	    Cube * C = new Cube((float)vec.size()/(float)pow(2.0,Hashtable::k));
 	    C->fill(vec,metric);
-	    
+     
 	    // ask for files if not provided
 	    if( query_file.compare("")==0 ){
 			cout << "Enter path of query file:" << endl;
@@ -165,6 +167,8 @@ int main(int argc, char const *argv[])
 			queries.push_back(p); // adding to vector of points
 
 	    }
+	    qinfile.close();
+	    query_file = "";
 
 	    std::ofstream outfile (output_file);
 	    std::vector<DPnt> nns,e_nns;
@@ -183,28 +187,28 @@ int main(int argc, char const *argv[])
   			begin = clock();
 			nn = C->NN(queries[i],metric,metric_ptr,probes,Mp,R,nns);
 			end = clock();
-			    
+
 			begin_e = clock();
 			e_nn = NN_exhaustive(queries[i],metric_ptr,R,e_nns,vec);
 			end_e = clock();
-
 			// printing to output file
 			outfile << "Query: " << queries[i]->get_name() << std::endl;
 			outfile << "R-near neighbors:" << std::endl;
 			for (int i = 0; i < nns.size(); ++i)
 			{
-				outfile << nns[i].first->get_name() << std::endl;
+				if( nns[i].first!=NULL ) outfile << nns[i].first->get_name() << std::endl;
 			}
-			outfile << "Nearest neighbor: " << nn.first->get_name() << endl;
-			outfile << "distanceCube: " << (double)nn.second << endl;
-			outfile << "distanceTrue: " << (double)e_nn.second << endl;
+			if( nn.first!=NULL ) {
+				outfile << "distanceCube: " << (double)nn.second << endl; 
+				outfile << "Nearest neighbor: " << nn.first->get_name() << endl;
+			}
+			if( e_nn.first!=NULL ) outfile << "distanceTrue: " << (double)e_nn.second << endl;
 			outfile << "tCube: " << double(end - begin) / CLOCKS_PER_SEC << endl;
 			outfile << "tTrue: " << double(end_e - begin_e) / CLOCKS_PER_SEC << endl;
-			
-
 	    }
 		outfile.close();
-		
+		output_file = "";
+
 	 	// free space
 	 	delete C;
 	 	for (int i = 0; i < vec.size(); ++i)
@@ -244,7 +248,7 @@ double cosine_similarity(Point * p1, Point * p2) {
 	{
 		product += (coords1[i])*(coords2[i]);
 	}
-	return (double)1-(product/(double)((p1->abs())*(p2->abs())));	
+	return (product/(double)((p1->abs())*(p2->abs())));	
 }
 
 DPnt NN_exhaustive(Point * query,double(*metric)(Point *,Point *),double R,vector<DPnt>& nns,vector<Point *>& points) {

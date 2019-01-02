@@ -92,11 +92,8 @@ int main (int argc, char const *argv[]) {
 	Cs->N = countlines-1;
 
 	clock_t begin,end,begin_e,end_e;
-	Cs->iter1(iter,metric_ptr);	
-	//Cs->iter2(iter,metric_ptr);
-	//Cs->print_points();
-	//Cs->swap(1,4);
-	//Cs->print_points();
+	Cs->iter2(iter,metric_ptr);
+	Cs->print_points();
 
 
 

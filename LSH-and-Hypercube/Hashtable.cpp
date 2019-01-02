@@ -169,12 +169,10 @@ long long Hashtable::bit_hash(Point& p) { // applying hash function
 		{
 			temp += p.get_multcoord(i,(*it_v)[i]);
 		}
-
 		int h = (temp >= 0);
 		p.add_h2g(h);
 		if( h==0 ) res[i] = '0';
 		else res[i] = '1';		
-
 		// proceed with next h()
 		it_v++;
 	}
@@ -217,7 +215,7 @@ DPnt Hashtable::NN(Point * query,string metric_name,double(*metric)(Point *,Poin
 	    	min.second = dist;
 	    } else {
 	    	// using g values to determine neighbourhood
-	    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+	    	if( query->get_g().compare(neighbour->get_g())==0 ) {
 			    if( dist<min.second ) {
 			    	min.first = neighbour;
 			    	min.second = dist;
@@ -225,7 +223,7 @@ DPnt Hashtable::NN(Point * query,string metric_name,double(*metric)(Point *,Poin
 			    if( dist<=R ) {
 			    	nns.push_back(make_pair(neighbour,dist));
 			    }
-			//}
+			}
 		}
 	}
 	return min;
@@ -297,7 +295,6 @@ string Cube::cube_hash(Point& p, string metric) { // applying hash function
 
 			int h = (temp >= 0);
 			p.add_h2g(h);		
-
 			string bit = std::to_string((*it_f)*temp >= 0.5);
 			res += bit;
 		} else {
@@ -313,8 +310,8 @@ string Cube::cube_hash(Point& p, string metric) { // applying hash function
 			temp += (*it_t / (float)w);
 			long long h = floor (temp);
 			p.add_h2g(abs(h));
-		
 			string bit = std::to_string(abs((*it_f)*h) >= 0.5);
+
 			res += bit;
 		}
 		// proceed with next h()
@@ -345,13 +342,13 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 
 	for ( auto local_it = cube.begin(buc); local_it!= cube.end(buc); ++local_it ){
 	    neighbour = local_it->second;
-
 	    double dist = metric(query,neighbour);
 	    if( min.first==NULL && min.second<0 ) {
 	    	min.first = neighbour;
 	    	min.second = dist;
 	    } else {
-	    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+	    	if( query->get_g().compare(neighbour->get_g())==0 ) {
+cout << "here" << endl;
 			    if( dist<min.second ) {
 			    	min.first = neighbour;
 			    	min.second = dist;
@@ -359,7 +356,7 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 			    if( dist<=R ) {
 			    	nns.push_back(make_pair(neighbour,dist));
 			    }
-			//}
+			}
 		}
 		if( --M==0 ) return min;
 	}
@@ -376,7 +373,7 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 		    	min.first = neighbour;
 		    	min.second = dist;
 		    } else {
-		    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+		    	if( query->get_g().compare(neighbour->get_g())==0 ) {
 				    if( dist<min.second ) {
 				    	min.first = neighbour;
 				    	min.second = dist;
@@ -384,7 +381,7 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 				    if( dist<=R ) {
 				    	nns.push_back(make_pair(neighbour,dist));
 				    }
-				//}
+				}
 			}
 			if( --M==0 ) return min;
 		}
@@ -400,7 +397,7 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 		    	min.first = neighbour;
 		    	min.second = dist;
 		    } else {
-		    	//if( query->get_g().compare(neighbour->get_g())==0 ) {
+		    	if( query->get_g().compare(neighbour->get_g())==0 ) {
 				    if( dist<min.second ) {
 				    	min.first = neighbour;
 				    	min.second = dist;
@@ -408,7 +405,7 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 				    if( dist<=R ) {
 				    	nns.push_back(make_pair(neighbour,dist));
 				    }
-				//}
+				}
 			}
 			if( --M==0 ) return min;
 		}

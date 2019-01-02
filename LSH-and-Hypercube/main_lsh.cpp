@@ -7,8 +7,8 @@
 
 using namespace std::chrono; 
 
-int Hashtable::k = 4;
-int Hashtable::w = 4;
+int Hashtable::k = 100;
+int Hashtable::w = 40;
 int Hashtable::d = 20; //128
 int Point::d = 20; //128
 int L = 5;
@@ -62,19 +62,10 @@ int main(int argc, char const *argv[])
 		string delimiter = " ";
 		string number,line,metric;
 		
+		vector<Point *> vec;
+		
 		// read name of metric used
 		getline(infile,metric);
-
-		// default metric is euclidean
-	    double (*metric_ptr)(Point *,Point *) = &euclidean;
-	    if ( metric[0]=='c' ) // for cosine similarity
-	    {
-	    	metric_ptr = &cosine_similarity;
-	    }
-	    
-		// creating list of hashtables
-	  	Hashlist Hl(L,2.0); // create list of hashtables and fill with points
-	  	vector<Point *> vec;
 
 		int countlines = 0;
 	    while (getline(infile,line))
@@ -114,6 +105,19 @@ int main(int argc, char const *argv[])
 
 	    }
 	    infile.close();
+	    filename = "";
+
+	    // default metric is euclidean
+	    double (*metric_ptr)(Point *,Point *) = &euclidean;
+	    double loadfactor = 2.0; // for tablesize
+	    if ( metric[0]=='c' ) // for cosine similarity
+	    {
+	    	metric_ptr = &cosine_similarity;
+	    	loadfactor = (float)vec.size()/(float)pow(2.0,Hashtable::k);
+	    }
+
+		// creating list of hashtables
+	  	Hashlist Hl(L,loadfactor); // create list of hashtables and fill with points
 
 	    // initialize hashtables
 	    for ( auto iter = Hl.list.begin(); iter != Hl.list.end(); ++iter ) // for each hashtable
@@ -174,6 +178,8 @@ int main(int argc, char const *argv[])
 			queries.push_back(p); // adding to vector of points
 
 	    }
+	    qinfile.close();
+	    query_file = "";
 
 	    std::ofstream outfile (output_file);
 	    std::vector<DPnt> nns,e_nns;
@@ -203,10 +209,10 @@ int main(int argc, char const *argv[])
 			outfile << "distanceTrue: " << (double)e_nn.second << endl;
 			outfile << "tLSH: " << double(end - begin) / CLOCKS_PER_SEC << endl;
 			outfile << "tTrue: " << double(end_e - begin_e) / CLOCKS_PER_SEC << endl;
-			
 
 	    }
 		outfile.close();
+		output_file = "";
 
 	 	// free space
 	 	for (int i = 0; i < vec.size(); ++i)
@@ -251,9 +257,10 @@ double cosine_similarity(Point * p1, Point * p2) {
 
 DPnt NN_exhaustive(Point * query,double(*metric)(Point *,Point *),double R,vector<DPnt>& nns,vector<Point *>& points) {
 	DPnt min(NULL,-1);
+	double temp;
 	for (int i = 0; i < points.size(); i++){
-	    double temp = metric(query,points[i]);
-	    if( i==0 ) {
+	    temp = metric(query,points[i]);
+	    if( i==1 ) {
 	    	min.first = points[i];
 	    	min.second = temp;
 	    } else {

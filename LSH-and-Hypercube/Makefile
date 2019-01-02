@@ -26,4 +26,4 @@ Point.o : Point.cpp Point.h
 
 
 clean : 
-	rm lsh cube
+	rm -rf lsh cube *.o

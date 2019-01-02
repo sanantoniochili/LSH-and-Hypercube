@@ -35,7 +35,6 @@ DPnt Hashlist::NN(Point * query,string metric_name,double (*metric)(Point *,Poin
 	int count = 1;
 	for ( auto iter = list.begin(); iter != list.end(); ++iter ) // for each hashtable
 	{
-		//cout << "--Hashtable " << count++ << "--" << endl; 
 		min = (*iter)->NN(query,metric_name,metric,min,R,nns);
 	}
 
