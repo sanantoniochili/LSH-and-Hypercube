@@ -39,6 +39,7 @@ public:
 	void add_coin(Text&);
 	void print_coins();	
 	int find_coin(string);
+	string get_name(int index) { return (*coins[index])[0]; }
 };
 
 #endif

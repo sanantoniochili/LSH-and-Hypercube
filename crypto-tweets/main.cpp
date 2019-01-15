@@ -17,27 +17,22 @@ double euclidean(Point *, Point *);
 double cosine_similarity(Point *, Point *);
 
 int main (int argc, char const *argv[]) {
-	string lex_filename = "vader_lexicon.csv";
-	string input_filename = "tweets_dataset_small.csv";
+	string input_filename,out_filename,lex_filename = "vader_lexicon.csv";
 	string crypto_filename = "coins_queries.csv";
 	string line,delimiter = ",";
 	int iter = 0;
 
-/*	for (int i=0 ; i<argc ; i++) {
-		if( strcmp(argv[i],"-i")==0 ){
-			filename = argv[++i];
-			cout << "defined dataset:" << filename << "\t";
-		}    
+	for (int i=0 ; i<argc ; i++) {
 		if( strcmp(argv[i],"-d")==0 ){
-			metric = argv[++i];
-			cout << "defined metric:" << metric << "\t";
+			input_filename = argv[++i];
+			cout << "defined input file: " << input_filename << "\t";
+		}    
+		if( strcmp(argv[i],"-o")==0 ){
+			out_filename = argv[++i];
+			cout << "defined output file:" << out_filename << "\t";
 		}
-		if( strcmp(argv[i],"-c")==0 ){
-			iter = stoi(argv[++i]);
-			cout << "defined iterations:" << iter << "\t";
-		} 
 	}
-*/
+
 	cout << endl;
 		
 	ifstream lexfile (lex_filename);
@@ -47,7 +42,7 @@ int main (int argc, char const *argv[]) {
 	}
 
 	// create lexicon
-	Lexicon * L = new Lexicon();
+	Lexicon * Lex = new Lexicon();
 
 	while( getline(lexfile,line) ) {
 		std::stringstream ss(line);
@@ -61,7 +56,7 @@ int main (int argc, char const *argv[]) {
 	            ss.ignore();
 	    }
 	    double val = stod(buf[buf.size()-1]);
-	    L->add_phrase(buf[0],val);
+	    Lex->add_phrase(buf[0],val);
 
 	}
 	lexfile.close();
@@ -72,9 +67,7 @@ int main (int argc, char const *argv[]) {
 	    return -1;
 	}
 
-	//L->print();
-
-	// add input tweets
+	// reading tweets
 	TweetsList TuitL;
 
 	getline(infile,line); // get first line
@@ -113,11 +106,9 @@ int main (int argc, char const *argv[]) {
 	    return -1;
 	}
 
-	// add input
 	Cryptos Cs;
 
 	while( getline(cyfile,line) ) {
-//cout << line << endl;
 
 		std::vector<string> buf;
 		string token;
@@ -137,15 +128,23 @@ int main (int argc, char const *argv[]) {
 	//Cs.print_coins();
 	TuitL.assign_cryptos(Cs);
 	//TuitL.print_tweets();
-	TuitL.calculate_scores(L,ALPHA);
+	TuitL.calculate_scores(Lex,ALPHA);
 	//TuitL.print_scores();
 	TuitL.coins_per_user(Cs.coin_no());
-	TuitL.print_user_scores();
-	
+	//TuitL.print_user_scores();
 
+	Point:: d = Cs.coin_no();
+	Hashtable::d = Cs.coin_no();
 
+	//TuitL.print_user_scores();
+	std::vector<Point *> * vec = new vector<Point *>();
+	Hashlist * Hl = TuitL.LSH_fill_wrapper(vec,L);
+	TuitL.predict_user(Hl,*vec,&cosine_similarity,neighs);
+	TuitL.recommend5(Cs,Hl,vec,&cosine_similarity,out_filename);
 
-	delete(L);
+	TuitL.LSH_destroy(Hl);
+	delete(vec);
+	delete(Lex);
     return 0;
 }
 

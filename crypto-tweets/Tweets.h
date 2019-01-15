@@ -4,8 +4,12 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <fstream>
 #include <cmath>
 #include "Lexicon.h"
+#include "../LSH-and-Hypercube/Hashlist.h"
+#include "../K-means/Cluster.h"
+
 
 using namespace std;
 
@@ -22,6 +26,8 @@ struct Tweet{
 
 struct User{
 	int id;
+	double mean_score;
+	std::vector<int> unknown;
 	std::vector<double> coin_sents;
 
 	User(int nid, int no_of_coins) { 
@@ -45,6 +51,10 @@ public:
 	void print_tweets();
 	void coins_per_user(int);
 	void print_user_scores();
+	Hashlist * LSH_fill_wrapper(std::vector<Point *> *, int);
+	void LSH_destroy(Hashlist * Hl);
+	void predict_user(Hashlist * Hl, std::vector<Point *> vec, double (*metric_ptr)(Point *,Point *), int P);
+	void recommend5(Cryptos& Cs, Hashlist * Hl, std::vector<Point *> * vec, double (*metric_ptr)(Point *,Point *),string);
 };
 
 typedef std::multimap<int, Tweet *>::iterator Titer;
