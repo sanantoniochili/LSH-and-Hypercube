@@ -348,7 +348,6 @@ DPnt Cube::NN(Point * query,string metric_name,double(*metric)(Point *,Point *),
 	    	min.second = dist;
 	    } else {
 	    	if( query->get_g().compare(neighbour->get_g())==0 ) {
-cout << "here" << endl;
 			    if( dist<min.second ) {
 			    	min.first = neighbour;
 			    	min.second = dist;

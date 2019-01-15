@@ -7,6 +7,8 @@
 
 using namespace std::chrono; 
 
+#define TABLESIZE 2.0
+
 int Hashtable::k = 100;
 int Hashtable::w = 40;
 int Hashtable::d = 20; //128
@@ -109,7 +111,7 @@ int main(int argc, char const *argv[])
 
 	    // default metric is euclidean
 	    double (*metric_ptr)(Point *,Point *) = &euclidean;
-	    double loadfactor = 2.0; // for tablesize
+	    double loadfactor = TABLESIZE; // for tablesize
 	    if ( metric[0]=='c' ) // for cosine similarity
 	    {
 	    	metric_ptr = &cosine_similarity;

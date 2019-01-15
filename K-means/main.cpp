@@ -8,6 +8,11 @@
 #define K 10
 
 int Point::d = 20; //128
+int Hashtable::k = 10;
+int Hashtable::w = 4;
+int Hashtable::d = 20; //128
+int L = 10;
+
 double euclidean(Point *, Point *);
 double cosine_similarity(Point *, Point *);
 
@@ -91,13 +96,26 @@ int main (int argc, char const *argv[]) {
 	infile.close();
 	Cs->N = countlines-1;
 
+	// ----------- LSH Config
+
+	// ----------- Hypercube Config
+
+
+
 	clock_t begin,end,begin_e,end_e;
-	Cs->iter2(iter,metric_ptr);
-	Cs->print_points();
+	//Cs->iter2(iter,metric_ptr);
+	//Cs->print_points();
+
+	std::vector<Point *> * vec = new vector<Point *>;
+	Cs->kmeanspp(metric_ptr);
+	Hashlist * Hl = Cs->LSH_fill(vec,L,metric);
+	Cs->LSH_assign(Hl,metric,metric_ptr);
 
 
 
 	delete Cs;
+	delete Hl;
+	delete vec;
 	return 0;
 }
 

@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <random>
-#include <algorithm>       
+#include <algorithm>
+#include <fstream>       
 #include "Cluster.h"
 using namespace std;
 
@@ -49,6 +50,15 @@ void Clusters::rand_centr() {
 	}
 }
 
+int Clusters::find_point_by_name(Point * p) {
+	int pos = stoi(p->get_name())-1;
+	if( pos>=0 && pos<match.size() ){
+		return pos;
+	}
+	return -1;
+}
+
+
 void Clusters::kmeanspp(double (*metric)(Point *,Point *)) {
 	std::default_random_engine generator;
   	std::uniform_int_distribution<int> distribution(0,match.size());
@@ -92,7 +102,7 @@ DCnt Clusters::closest_centr(Point * p,double (*metric)(Point *,Point *)) { // r
 	for (int i = 1; i < centrs.size(); ++i) // calculate min distance among centroids
 	{
 		double dist = metric(p,match[centrs[i]].first); // find distance of point (arg 1) from centroid of cluster i (arg 2)
-		if( dist<minD ){
+		if( dist<minD && dist>0 ){
 			minD = dist;
 			minC = i; // index of centroid in "centrs" vector
 		}
@@ -129,6 +139,90 @@ void Clusters::lloyds_assign(double (*metric)(Point *,Point *)) {
 			obf.push_back(pow(cnt_dist.second,2.0)); // keep min distance 
 		}
 	}
+}
+
+Hashlist * Clusters::LSH_fill(std::vector<Point *> * vec, int L, string metric) {
+	double loadfactor = 2.0;
+	if ( metric[0]=='c' ) // for cosine similarity
+	   	loadfactor = (float)vec->size()/(float)pow(2.0,Hashtable::k);
+
+	Hashlist * Hl = new Hashlist(L,loadfactor);
+	// fill a vector of points
+	for (int i = 0; i < match.size(); ++i)
+	{
+		vec->push_back(match[i].first);
+	}
+	// initialize hashtables
+	for ( auto iter = Hl->list.begin(); iter != Hl->list.end(); ++iter ) // for each hashtable
+	{
+	  	(*iter)->fill(*vec,metric);
+	}
+	return Hl;
+}
+
+// SEG FAULT
+void Clusters::LSH_assign(Hashlist * Hl, string metric, double (*metric_ptr)(Point *,Point *)) {
+	std::vector<Range *> ranges; // needed to manage centroids as range spheres
+	for (int i = 0; i < centrs.size(); ++i)
+	{
+		Range * R = new Range(i,this,metric_ptr);
+		ranges.push_back(R);
+	}
+
+	for (int i = 0; i < match.size(); ++i) // init matches with non existent value
+	{
+		match[i].second = -1;
+	}
+
+/*	double change = 0; // ratio of cluster change in assignments
+	do{
+cout << "here000" << endl;
+		std::vector<DPnt> nns;
+		obf.clear();
+		int total_new = 0;
+		for (int i = 0; i < centrs.size(); ++i) // increase radius
+		{
+			int id = ranges[i]->centroid;
+			Hl->NN(match[centrs[id]].first,metric,metric_ptr,ranges[i]->getR(),nns); // getting points in <=R distance
+			ranges[i]->doubleR();
+			ranges[i]->assigned = 0;
+cout << "here001" << endl;
+			for (int i = 0; i < nns.size(); ++i) // find every point in range <= R and assign to centroid
+			{
+				// count assigned to this centroid
+				ranges[i]->assigned++;	// assignment changed
+cout << "here010" << endl;
+cout << nns[i].first << endl;
+				// find point in "match" vector	
+				int pos = find_point_by_name(nns[i].first);
+				int old = match[pos].second;
+				if( old!=id ) {
+					total_new++;
+					match[pos].second = id;
+					obf.push_back(pow(nns[i].second,2.0)); // keep min distance 
+				}
+cout << "here011" << endl;
+			}
+		}
+cout << "here100" << endl;
+		change = (double) total_new / (double) match.size();
+cout << "change: " << change << endl;
+	}while( change>0 ); 
+
+	for (int i = 0; i < match.size(); ++i)
+	{
+		if( match[i].second<0 ) {
+			DCnt cnt_dist = closest_centr(match[i].first,metric_ptr); // find closest centroid
+			match[i].second = cnt_dist.first; // assign closest centroid
+			obf.push_back(pow(cnt_dist.second,2.0)); // keep min distance 
+		}
+	}
+cout << "here101" << endl;
+	for (int i = 0; i < centrs.size(); ++i)
+	{
+		delete(ranges[i]);
+	}
+	*/
 }
 
 void Clusters::lloyds_update(double (*metric)(Point *,Point *)) {
@@ -319,7 +413,7 @@ DCnt Clusters::closest_to_virtual(Point * p, int cluster, double (*metric)(Point
 }
 
 
-void Clusters::iter1(int count, double (*metric)(Point *,Point *)) {
+/*void Clusters::iter1(int count, double (*metric)(Point *,Point *)) {
 	rand_centr();
 	lloyds_assign(metric);
 	for (int i = 0; i < count; ++i)
@@ -340,4 +434,10 @@ void Clusters::iter2(int count, double (*metric)(Point *,Point *)) {
 	}
 	lloyds_virtual_clean();
 
+}*/
+
+Range::Range(int id, Clusters * Cs, double (*metric)(Point *,Point *)) : centroid(id), assigned(0) { // to use for range 
+
+	DCnt cnt_dist = Cs->closest_centr(Cs->get_centr(centroid),metric); // find first value of radius
+	this->R = cnt_dist.second / (double) 2; // as mid dist from other centroid divided by 2
 }
